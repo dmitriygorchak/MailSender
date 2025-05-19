@@ -14,12 +14,12 @@ namespace MailSender
         public string To { get; set; }
         public string Theme { get; set; }
         public string Body { get; set; }
-        public ObservableCollection<string> Attachments { get; private set; } // Зроблено публічним для binding
+        public ObservableCollection<string> Attachments { get; private set; } 
 
         public ViewModel(string from)
         {
             From = from;
-            Attachments = new ObservableCollection<string>(); // Ініціалізація колекції
+            Attachments = new ObservableCollection<string>(); 
         }
 
         public void AddAttach(string at)
