@@ -1,16 +1,8 @@
 ﻿using Microsoft.Win32;
 using System.Net;
 using System.Net.Mail;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace MailSender
 {
@@ -26,8 +18,6 @@ namespace MailSender
         ViewModel model;
         bool important;
 
-        //dimon4elogor@gmail.com
-        //"kpjc jryl bizv hfmx"
         public MainWindow()
         {
             InitializeComponent();
@@ -49,21 +39,38 @@ namespace MailSender
 
         private void Send_Button_Click(object sender, RoutedEventArgs e)
         {
-            MailMessage message = new MailMessage(model.From, model.To, model.Theme, model.Body);
-            foreach (var item in model.Attachments)
+            try
             {
-                message.Attachments.Add(new Attachment(item));
+                // Validate email addresses
+                new MailAddress(model.From);
+                new MailAddress(model.To);
+
+                MailMessage message = new MailMessage(model.From, model.To, model.Theme, model.Body);
+                foreach (var item in model.Attachments)
+                {
+                    if (!string.IsNullOrEmpty(item))
+                    {
+                        message.Attachments.Add(new Attachment(item));
+                    }
+                }
+                if (important)
+                    message.Priority = MailPriority.High;
+
+                SmtpClient client = new SmtpClient(server, port);
+                client.EnableSsl = true;
+                client.Credentials = new NetworkCredential(user_name, user_pass);
+                client.SendCompleted += Client_SendCompleted;
+
+                client.SendAsync(message, message);
             }
-            if (important)
-                message.Priority = MailPriority.High;
-
-            SmtpClient client = new SmtpClient(server, port);
-            client.EnableSsl = true;
-
-            client.Credentials = new NetworkCredential(user_name, user_pass);
-            client.SendCompleted += Client_SendCompleted;
-
-            client.SendAsync(message, message);
+            catch (FormatException ex)
+            {
+                MessageBox.Show("Invalid email address format. Please check From and To fields.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}");
+            }
         }
 
         private void Client_SendCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
